@@ -17,6 +17,6 @@ export const connectDb = () => {
     })
     .catch((err) => {
       console.error("Database connection error:", err);
-      process.exit(1); // Exit the process with a failure code
+      process.exit(1); 
     });
 };
