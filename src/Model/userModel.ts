@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, model } from "mongoose";
+import mongoose, { Schema, Document, model, Model } from "mongoose";
 import bcrypt from "bcrypt";
 
 interface IUser extends Document {
@@ -9,16 +9,16 @@ interface IUser extends Document {
   profile?: string;
   bio?: string;
 }
-const UserSchema:Schema<IUser> = new Schema(
+const UserSchema: Schema<IUser> = new Schema(
   {
     name: {
       type: String,
-      required:true,
+      required: true,
     },
     email: {
       type: String,
-      required:true,
-      unique:true
+      required: true,
+      unique: true,
     },
     role: {
       type: String,
@@ -27,7 +27,7 @@ const UserSchema:Schema<IUser> = new Schema(
     },
     password: {
       type: String,
-      required:true
+      required: true,
     },
     profile: {
       type: String,
@@ -51,3 +51,5 @@ UserSchema.pre<IUser>("save", async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
+const Users: Model<IUser> = mongoose.model<IUser>("users",UserSchema);
+export default Users

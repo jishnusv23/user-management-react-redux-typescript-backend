@@ -1,15 +1,20 @@
-import express, {Request,Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import cros from "cors";
 import { connectDb } from "./config/config";
+import UserRouter from "./Routers/UserRouter";
 
+dotenv.config();
 connectDb();
 
 const app = express();
-dotenv.config();
-
 const PORT = process.env.PORT || 4000;
+
+// app.use(express.static("public"));
+
+app.use(express.json());
+app.use(cookieParser())
 
 app.use(
   cros({
@@ -17,12 +22,14 @@ app.use(
     credentials: true,
   })
 );
+app.use("/", UserRouter);
+
 
 //* error handling
-app.use((err:any, req:Request, res:Response, next:NextFunction) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.log(err);
-  
-  res.status(500).send('Something error');
+
+  res.status(500).send("Something error");
 });
 
 app.listen(PORT, (error?: any) => {

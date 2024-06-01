@@ -6,7 +6,9 @@ package-lock.json
 
 # Environment variables
 .env
-.dist
+#dist remove
+echo "dist/" >> .gitignore
+
 
 # Assets
 public/assets/
