@@ -71,7 +71,7 @@ const userController = {
         }
       }
       // console.log("token first side working ");
-      console.log(token, "token is here");
+      // console.log(token, "token is here");
 
       if (!token) {
         console.log("null token");
@@ -90,7 +90,7 @@ const userController = {
       if (!verifydecoded) {
         res.status(401).json({ error: "Token is not valid" });
       }
-      console.log(verifydecoded, "this is veryfied decode");
+      // console.log(verifydecoded, "this is veryfied decode");
       let userData
 
         try{
