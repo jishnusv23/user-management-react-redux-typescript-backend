@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, model, Model } from "mongoose";
 import bcrypt from "bcrypt";
+const default_profile='/monkey.png'
 
 interface IUser extends Document {
   name: string;
@@ -31,6 +32,7 @@ const UserSchema: Schema<IUser> = new Schema(
     },
     profile: {
       type: String,
+      default:default_profile
     },
     bio: {
       type: String,
