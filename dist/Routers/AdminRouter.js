@@ -8,4 +8,5 @@ const router = express_1.default.Router();
 const AdminController_1 = __importDefault(require("../Controller/AdminController"));
 router.get("/fetch-user-admin", AdminController_1.default.fetch_User_Admin);
 router.post("/edit-user", AdminController_1.default.EditUserName);
+router.post("/add-user-admin", AdminController_1.default.Add_New_User);
 exports.default = router;

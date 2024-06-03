@@ -32,6 +32,29 @@ const AdminController = {
       console.log(err);
     }
   },
+  Add_New_User:async(req:Request,res:Response)=>{
+    try{
+    console.log(req.body)
+    const {name,email,password}=req.body
+    const CheckUserIn=await Users.findOne({email:email})
+    if(CheckUserIn){
+      res.json({CheckError:true})
+
+    }else{
+      const userData=new Users({
+        name:name,
+        email,
+        role:"User",
+        password:password
+      })
+      const user=await userData.save()
+      res.json({success:true})
+    }
+
+    }catch(err){
+      console.log(err)
+    }
+  }
 };
 
 export default AdminController;

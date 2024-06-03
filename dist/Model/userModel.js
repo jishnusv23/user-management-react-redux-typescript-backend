@@ -37,7 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const default_profile = '/monkey.png';
+const default_profile = '/monkey.jpg';
 const UserSchema = new mongoose_1.Schema({
     name: {
         type: String,

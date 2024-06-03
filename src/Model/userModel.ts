@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, model, Model } from "mongoose";
 import bcrypt from "bcrypt";
-const default_profile='/monkey.png'
+const default_profile='/monkey.jpg'
+// import default_profile from '/monkey.jpg'
 
 interface IUser extends Document {
   name: string;

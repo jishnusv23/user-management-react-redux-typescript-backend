@@ -46,5 +46,28 @@ const AdminController = {
             console.log(err);
         }
     }),
+    Add_New_User: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            console.log(req.body);
+            const { name, email, password } = req.body;
+            const CheckUserIn = yield userModel_1.default.findOne({ email: email });
+            if (CheckUserIn) {
+                res.json({ CheckError: true });
+            }
+            else {
+                const userData = new userModel_1.default({
+                    name: name,
+                    email,
+                    role: "User",
+                    password: password
+                });
+                const user = yield userData.save();
+                res.json({ success: true });
+            }
+        }
+        catch (err) {
+            console.log(err);
+        }
+    })
 };
 exports.default = AdminController;

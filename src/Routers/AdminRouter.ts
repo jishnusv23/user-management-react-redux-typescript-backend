@@ -4,5 +4,6 @@ import AdminController from "../Controller/AdminController";
 
 router.get("/fetch-user-admin", AdminController.fetch_User_Admin);
 router.post("/edit-user",AdminController.EditUserName);
+router.post("/add-user-admin",AdminController.Add_New_User);
 
 export default router;
