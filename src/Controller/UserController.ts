@@ -148,12 +148,12 @@ const userController = {
   PostEditProfile: async (req: Request, res: Response) => {
     try {
       console.log(req.body);
-      const { username, email, bio,images } = req.body;
+      const { username, email, bio, images } = req.body;
       const userIn = await Users.findOne({ email: email });
       if (userIn) {
         await Users.updateOne(
           { email: email },
-          { $set: { name: username, bio: bio,profile:images } }
+          { $set: { name: username, bio: bio, profile: images } }
         );
         res.json({ success: true });
       } else {
@@ -173,15 +173,15 @@ const userController = {
       const verifydecoded = jwt.verify(
         token,
         process.env.ACCESS_TOKEN_SECRET as string
-      )as decode
-  
+      ) as decode;
+
       if (!verifydecoded) {
         return res.status(401).json({ error: "Token is not valid" });
       }
 
       const userfind = await Users.findOne({ _id: verifydecoded.user });
       if (userfind && userfind.profile !== "monkey.jpg") {
-        const imageFileName = userfind.profile as string
+        const imageFileName = userfind.profile as string;
         const imagePath = path.join(PUBLIC_DIR, imageFileName);
         if (fs.existsSync(imagePath)) {
           fs.unlinkSync(imagePath);
@@ -195,13 +195,73 @@ const userController = {
 
       await Users.updateOne(
         { _id: verifydecoded.user },
-        { $set: { profile: path_name } } 
+        { $set: { profile: path_name } }
       );
 
       res.json({ success: true });
     } catch (err) {
       console.log("Error in updating photo:", err);
       res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+  Delete_Img: async (req: Request, res: Response) => {
+    try {
+      const token = req.cookies.token;
+      if (!token) {
+        return res.status(401).json({ error: "No token provided" });
+      }
+      const verifydecoded = jwt.verify(
+        token,
+        process.env.ACCESS_TOKEN_SECRET as string
+      ) as decode;
+
+      if (!verifydecoded) {
+        return res.status(401).json({ error: "Token is not valid" });
+      }
+
+      console.log(req.body);
+      const { id } = req.body;
+      const userIn = await Users.findById(verifydecoded.user);
+
+      if (userIn) {
+        await Users.updateOne(
+          { _id: verifydecoded.user },
+          { $set: { profile: null } }
+        );
+        res.json({ success: true });
+      } else {
+        // console.log();
+        res.json({ ErrorDelete: true });
+        console.error("The is not valide");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  ResetPassword: async (req: Request, res: Response) => {
+    try {
+      console.log(req.body);
+      const { oldpasswordd, password, email } = req.body;
+      const User = await Users.findOne({ email: email });
+      // console.log(
+      //   "🚀 ~ file: UserController.ts:246 ~ ResetPassword: ~ UsermatchPas:",
+      //   UsermatchPas
+      // );
+      if (!User) {
+        res.json({ Usernotget: true });
+      } else {
+        const passMatch = await bcrypt.compare(oldpasswordd, User.password);
+        if (!passMatch) {
+          res.json({ NotMach: true });
+        } else {
+          const salt = await bcrypt.genSalt(10);
+          const hassed = await bcrypt.hash(password, salt);
+          await Users.updateOne({email:email},{$set:{password:hassed}})
+          res.json({success:true})
+        }
+      }
+    } catch (err) {
+      console.log(err);
     }
   },
   LogOut: async (req: Request, res: Response) => {

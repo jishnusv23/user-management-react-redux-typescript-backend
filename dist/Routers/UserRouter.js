@@ -14,6 +14,9 @@ router.post("/login", UserController_1.default.PostLogin);
 router.post("/edit-profile-form", UserController_1.default.PostEditProfile);
 //*change prolie
 router.post("/upload-profile-photo", multerconfig_1.default.single('profile'), UserController_1.default.uploadProfilePhoto);
+router.post("/delete-img", UserController_1.default.Delete_Img);
+//*Change password
+router.post("/change-password", UserController_1.default.ResetPassword);
 //*logout 
 router.get('/logout', UserController_1.default.LogOut);
 exports.default = router;

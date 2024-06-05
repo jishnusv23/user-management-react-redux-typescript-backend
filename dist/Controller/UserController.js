@@ -181,6 +181,62 @@ const userController = {
             res.status(500).json({ error: "Internal Server Error" });
         }
     }),
+    Delete_Img: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const token = req.cookies.token;
+            if (!token) {
+                return res.status(401).json({ error: "No token provided" });
+            }
+            const verifydecoded = jsonwebtoken_1.default.verify(token, process.env.ACCESS_TOKEN_SECRET);
+            if (!verifydecoded) {
+                return res.status(401).json({ error: "Token is not valid" });
+            }
+            console.log(req.body);
+            const { id } = req.body;
+            const userIn = yield userModel_1.default.findById(verifydecoded.user);
+            if (userIn) {
+                yield userModel_1.default.updateOne({ _id: verifydecoded.user }, { $set: { profile: null } });
+                res.json({ success: true });
+            }
+            else {
+                // console.log();
+                res.json({ ErrorDelete: true });
+                console.error("The is not valide");
+            }
+        }
+        catch (err) {
+            console.log(err);
+        }
+    }),
+    ResetPassword: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            console.log(req.body);
+            const { oldpasswordd, password, email } = req.body;
+            const User = yield userModel_1.default.findOne({ email: email });
+            // console.log(
+            //   "🚀 ~ file: UserController.ts:246 ~ ResetPassword: ~ UsermatchPas:",
+            //   UsermatchPas
+            // );
+            if (!User) {
+                res.json({ Usernotget: true });
+            }
+            else {
+                const passMatch = yield bcrypt_1.default.compare(oldpasswordd, User.password);
+                if (!passMatch) {
+                    res.json({ NotMach: true });
+                }
+                else {
+                    const salt = yield bcrypt_1.default.genSalt(10);
+                    const hassed = yield bcrypt_1.default.hash(password, salt);
+                    yield userModel_1.default.updateOne({ email: email }, { $set: { password: hassed } });
+                    res.json({ success: true });
+                }
+            }
+        }
+        catch (err) {
+            console.log(err);
+        }
+    }),
     LogOut: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             console.log("logout the user");

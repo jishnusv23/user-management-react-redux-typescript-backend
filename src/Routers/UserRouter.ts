@@ -15,6 +15,10 @@ router.post("/edit-profile-form", userController.PostEditProfile)
 
 //*change prolie
 router.post("/upload-profile-photo",upload.single('profile'),userController.uploadProfilePhoto)
+router.post("/delete-img", userController.Delete_Img);
+
+//*Change password
+router.post("/change-password",userController.ResetPassword);
 
 
 //*logout 
