@@ -8,6 +8,7 @@ interface IUser extends Document {
   email: string;
   role: "Admin" | "User" | "pending";
   password: string;
+  status:'Active'|'Block'
   profile?: string;
   bio?: string;
 }
@@ -31,9 +32,14 @@ const UserSchema: Schema<IUser> = new Schema(
       type: String,
       required: true,
     },
+    status:{
+      type:String,
+      enum:['Active','Block'],
+      default:'Active'
+    },
     profile: {
       type: String,
-      default:default_profile
+      default:null
     },
     bio: {
       type: String,

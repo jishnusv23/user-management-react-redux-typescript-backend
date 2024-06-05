@@ -57,9 +57,14 @@ const UserSchema = new mongoose_1.Schema({
         type: String,
         required: true,
     },
+    status: {
+        type: String,
+        enum: ['Active', 'Block'],
+        default: 'Active'
+    },
     profile: {
         type: String,
-        default: default_profile
+        default: null
     },
     bio: {
         type: String,

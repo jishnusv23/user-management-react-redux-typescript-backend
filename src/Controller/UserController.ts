@@ -7,11 +7,13 @@ import "dotenv/config";
 import { log, profile } from "console";
 import path from "path";
 import fs from "fs";
+import { decode } from "querystring";
 
 interface decode {
   user: string;
   iat: number;
 }
+const PUBLIC_DIR = path.join(__dirname, "public");
 
 const userController = {
   postSignUp: async (req: Request, res: Response) => {
@@ -121,6 +123,8 @@ const userController = {
         const passwordDNA = await bcrypt.compare(password, userExists.password);
         if (!passwordDNA) {
           return res.json({ PasswordError: true });
+        } else if (userExists.status == "Block") {
+          return res.json({ statusBlock: true });
         } else {
           const token = jwt.sign(
             { user: userExists.id },
@@ -144,12 +148,12 @@ const userController = {
   PostEditProfile: async (req: Request, res: Response) => {
     try {
       console.log(req.body);
-      const { username, email, bio } = req.body;
+      const { username, email, bio,images } = req.body;
       const userIn = await Users.findOne({ email: email });
       if (userIn) {
         await Users.updateOne(
           { email: email },
-          { $set: { name: username, bio: bio } }
+          { $set: { name: username, bio: bio,profile:images } }
         );
         res.json({ success: true });
       } else {
@@ -162,50 +166,51 @@ const userController = {
   uploadProfilePhoto: async (req: Request, res: Response) => {
     try {
       const token = req.cookies.token;
+      if (!token) {
+        return res.status(401).json({ error: "No token provided" });
+      }
+
       const verifydecoded = jwt.verify(
         token,
         process.env.ACCESS_TOKEN_SECRET as string
-      ) as decode;
-      console.log(
-        "🚀 ~ file: UserController.ts:143 ~ uploadProfilePhoto:async ~ verifydecoded:",
-        verifydecoded
-      );
+      )as decode
+  
       if (!verifydecoded) {
-        res.status(401).json({ error: "Token is not valid" });
+        return res.status(401).json({ error: "Token is not valid" });
       }
 
-      const imageDirectory = path.join(__dirname, "../../public");
-
-      // Check if the profile image exists and delete it if it does
       const userfind = await Users.findOne({ _id: verifydecoded.user });
       if (userfind && userfind.profile !== "monkey.jpg") {
-        const imageFileName = userfind.profile;
-        const imagePath = path.join(imageDirectory, imageFileName as string);
+        const imageFileName = userfind.profile as string
+        const imagePath = path.join(PUBLIC_DIR, imageFileName);
         if (fs.existsSync(imagePath)) {
           fs.unlinkSync(imagePath);
         }
       }
 
-      const path_name = req?.file?.filename;
+      const path_name = req.file?.filename;
+      if (!path_name) {
+        return res.status(400).json({ error: "File not uploaded" });
+      }
+
       await Users.updateOne(
         { _id: verifydecoded.user },
-        { $set: { profile: path_name } }
+        { $set: { profile: path_name } } 
       );
+
       res.json({ success: true });
     } catch (err) {
-      console.log("mistake in update photo", err);
+      console.log("Error in updating photo:", err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
   },
-  LogOut:async(req:Request,res:Response)=>{
-    try{
-
-      console.log('logout the user')
-      res.clearCookie('token').send({something:'logout'})
-
-    }catch(err){
-      console.log(err)
-      
+  LogOut: async (req: Request, res: Response) => {
+    try {
+      console.log("logout the user");
+      res.clearCookie("token").send({ something: "logout" });
+    } catch (err) {
+      console.log(err);
     }
-  }
+  },
 };
 export default userController;

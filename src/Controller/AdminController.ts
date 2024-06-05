@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Users from "../Model/userModel";
-import { log } from "console";
+import { error, log } from "console";
 
 const AdminController = {
   fetch_User_Admin: async (req: Request, res: Response) => {
@@ -32,29 +32,49 @@ const AdminController = {
       console.log(err);
     }
   },
-  Add_New_User:async(req:Request,res:Response)=>{
-    try{
-    console.log(req.body)
-    const {name,email,password}=req.body
-    const CheckUserIn=await Users.findOne({email:email})
-    if(CheckUserIn){
-      res.json({CheckError:true})
-
-    }else{
-      const userData=new Users({
-        name:name,
-        email,
-        role:"User",
-        password:password
-      })
-      const user=await userData.save()
-      res.json({success:true})
+  Add_New_User: async (req: Request, res: Response) => {
+    try {
+      console.log(req.body);
+      const { name, email, password } = req.body;
+      const CheckUserIn = await Users.findOne({ email: email });
+      if (CheckUserIn) {
+        res.json({ CheckError: true });
+      } else {
+        const userData = new Users({
+          name: name,
+          email,
+          role: "User",
+          password: password,
+        });
+        const user = await userData.save();
+        res.json({ success: true });
+      }
+    } catch (err) {
+      console.log(err);
     }
+  },
+  Delete_User: async (req: Request, res: Response) => {
+    try {
+      console.log(req.body)
+      const {data}=req.body
+      const userIn=await Users.findOne({_id:data})
+      if(userIn?.status=='Active'){
+        await Users.updateOne({_id:data},{$set:{status:'Block'}})
+        res.json({success:true})
+      }else if(userIn?.status=='Block'){
+        await Users.updateOne({_id:data},{$set:{status:'Active'}})
+        res.json({success:true})
 
-    }catch(err){
-      console.log(err)
+        
+      }else{
+        console.error('user id is not correct',error);
+        
+
+      }
+    } catch (err) {
+      console.log(err);
     }
-  }
+  },
 };
 
 export default AdminController;

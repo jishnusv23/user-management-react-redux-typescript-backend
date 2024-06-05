@@ -14,9 +14,12 @@ dotenv_1.default.config();
 (0, config_1.connectDb)();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 4000;
-app.use(express_1.default.static("public"));
+// app.use(express.static("public"));
 // app.use(express.static(path.join(__dirname, "public")));
 // app.use(express.static(path.join(__dirname, "src", "public")));
+// app.use(express.static(path.join(__dirname, "dist")));
+// const PUBLIC_DIR = path.join(__dirname, "public");
+// app.use(express.static(PUBLIC_DIR));
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use((0, cors_1.default)({
@@ -27,8 +30,8 @@ app.use("/", UserRouter_1.default);
 app.use("/admin", AdminRouter_1.default);
 //* error handling
 app.use((err, req, res, next) => {
-    console.log(err);
-    res.status(500).send("Something error");
+    console.error(err.stack);
+    res.status(500).json({ error: err.message });
 });
 app.listen(PORT, (error) => {
     if (error) {

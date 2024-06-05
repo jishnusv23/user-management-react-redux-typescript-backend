@@ -18,6 +18,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 require("dotenv/config");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const PUBLIC_DIR = path_1.default.join(__dirname, "public");
 const userController = {
     postSignUp: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
@@ -112,6 +113,9 @@ const userController = {
                 if (!passwordDNA) {
                     return res.json({ PasswordError: true });
                 }
+                else if (userExists.status == "Block") {
+                    return res.json({ statusBlock: true });
+                }
                 else {
                     const token = jsonwebtoken_1.default.sign({ user: userExists.id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "30d" });
                     // console.log("🚀 ~ file: UserController.ts:130 ~ PostLogin: ~ token:", token)
@@ -132,10 +136,10 @@ const userController = {
     PostEditProfile: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             console.log(req.body);
-            const { username, email, bio } = req.body;
+            const { username, email, bio, images } = req.body;
             const userIn = yield userModel_1.default.findOne({ email: email });
             if (userIn) {
-                yield userModel_1.default.updateOne({ email: email }, { $set: { name: username, bio: bio } });
+                yield userModel_1.default.updateOne({ email: email }, { $set: { name: username, bio: bio, profile: images } });
                 res.json({ success: true });
             }
             else {
@@ -150,37 +154,41 @@ const userController = {
         var _a;
         try {
             const token = req.cookies.token;
-            const verifydecoded = jsonwebtoken_1.default.verify(token, process.env.ACCESS_TOKEN_SECRET);
-            console.log("🚀 ~ file: UserController.ts:143 ~ uploadProfilePhoto:async ~ verifydecoded:", verifydecoded);
-            if (!verifydecoded) {
-                res.status(401).json({ error: "Token is not valid" });
+            if (!token) {
+                return res.status(401).json({ error: "No token provided" });
             }
-            const imageDirectory = path_1.default.join(__dirname, "../../public");
-            // Check if the profile image exists and delete it if it does
+            const verifydecoded = jsonwebtoken_1.default.verify(token, process.env.ACCESS_TOKEN_SECRET);
+            if (!verifydecoded) {
+                return res.status(401).json({ error: "Token is not valid" });
+            }
             const userfind = yield userModel_1.default.findOne({ _id: verifydecoded.user });
             if (userfind && userfind.profile !== "monkey.jpg") {
                 const imageFileName = userfind.profile;
-                const imagePath = path_1.default.join(imageDirectory, imageFileName);
+                const imagePath = path_1.default.join(PUBLIC_DIR, imageFileName);
                 if (fs_1.default.existsSync(imagePath)) {
                     fs_1.default.unlinkSync(imagePath);
                 }
             }
-            const path_name = (_a = req === null || req === void 0 ? void 0 : req.file) === null || _a === void 0 ? void 0 : _a.filename;
+            const path_name = (_a = req.file) === null || _a === void 0 ? void 0 : _a.filename;
+            if (!path_name) {
+                return res.status(400).json({ error: "File not uploaded" });
+            }
             yield userModel_1.default.updateOne({ _id: verifydecoded.user }, { $set: { profile: path_name } });
             res.json({ success: true });
         }
         catch (err) {
-            console.log("mistake in update photo", err);
+            console.log("Error in updating photo:", err);
+            res.status(500).json({ error: "Internal Server Error" });
         }
     }),
     LogOut: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            console.log('logout the user');
-            res.clearCookie('token').send({ something: 'logout' });
+            console.log("logout the user");
+            res.clearCookie("token").send({ something: "logout" });
         }
         catch (err) {
             console.log(err);
         }
-    })
+    }),
 };
 exports.default = userController;

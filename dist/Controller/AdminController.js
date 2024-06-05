@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const userModel_1 = __importDefault(require("../Model/userModel"));
+const console_1 = require("console");
 const AdminController = {
     fetch_User_Admin: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
@@ -59,7 +60,7 @@ const AdminController = {
                     name: name,
                     email,
                     role: "User",
-                    password: password
+                    password: password,
                 });
                 const user = yield userData.save();
                 res.json({ success: true });
@@ -68,6 +69,27 @@ const AdminController = {
         catch (err) {
             console.log(err);
         }
-    })
+    }),
+    Delete_User: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            console.log(req.body);
+            const { data } = req.body;
+            const userIn = yield userModel_1.default.findOne({ _id: data });
+            if ((userIn === null || userIn === void 0 ? void 0 : userIn.status) == 'Active') {
+                yield userModel_1.default.updateOne({ _id: data }, { $set: { status: 'Block' } });
+                res.json({ success: true });
+            }
+            else if ((userIn === null || userIn === void 0 ? void 0 : userIn.status) == 'Block') {
+                yield userModel_1.default.updateOne({ _id: data }, { $set: { status: 'Active' } });
+                res.json({ success: true });
+            }
+            else {
+                console.error('user id is not correct', console_1.error);
+            }
+        }
+        catch (err) {
+            console.log(err);
+        }
+    }),
 };
 exports.default = AdminController;
