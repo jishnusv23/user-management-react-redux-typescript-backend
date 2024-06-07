@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Users from "../Model/userModel";
-
+import { OAuth2Client } from "google-auth-library";
+import { makePassword } from "../utils/RandomGenerate";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
@@ -15,6 +16,7 @@ interface decode {
 }
 const PUBLIC_DIR = path.join(__dirname, "public");
 
+const client = new OAuth2Client(process.env.CLIENT_ID);
 const userController = {
   postSignUp: async (req: Request, res: Response) => {
     try {
@@ -62,6 +64,82 @@ const userController = {
       return res.status(500).json({ error: "Internal server" });
     }
   },
+  GoogleChecking: async (req: Request, res: Response) => {
+    try {
+      console.log(req.body, "this googel ath");
+      const { token } = req.body;
+      const ticket = (await client.verifyIdToken({
+        idToken: token as any,
+        audience: process.env.CLIENT_ID,
+      })) as any;
+      // console.log(
+      //   "🚀 ~ file: UserController.ts:75 ~ GoogleChecking: ~ ticket:",
+      //   ticket
+      // );
+
+
+      let userDetails;
+      const Payload = ticket.getPayload();
+      if (Payload) {
+        userDetails = {
+          email: Payload?.email,
+          name: Payload?.name,
+          password:makePassword()
+        };
+      }
+      const userIn=await Users.findOne({email:userDetails?.email})
+      // console.log("🚀 ~ file: UserController.ts:89 ~ GoogleChecking: ~ userIn:", userIn)
+      if(!userIn){
+            const saveUser= new Users({
+              name:userDetails?.name,
+              email:userDetails?.email,
+              password:userDetails?.password,
+              role:'User'
+            })
+            const user=await saveUser.save()
+
+            const token = jwt.sign(
+              { user: user.id },
+              process.env.ACCESS_TOKEN_SECRET as string
+            );
+
+              res
+                .cookie("token", token, {
+                  httpOnly: true,
+                  secure: true,
+                  sameSite: "strict",
+                  maxAge: 100 * 60 * 60 * 24,
+                })
+                .json({ success: true });
+
+      }else{
+        if(userIn.status=='Block'){
+          return res.json({ statusBlock: true });
+        
+        }else{
+            const token = jwt.sign(
+              { user: userIn.id },
+              process.env.ACCESS_TOKEN_SECRET as string,
+              { expiresIn: "30d" }
+            );
+            // console.log("🚀 ~ file: UserController.ts:130 ~ PostLogin: ~ token:", token)
+            res
+              .cookie("token", token, {
+                httpOnly: true,
+                maxAge: 100 * 60 * 60 * 24,
+              })
+              .json({ success: true });
+        }
+
+
+      }
+      
+    console.log("🚀 ~ file: UserController.ts:92 ~ GoogleChecking: ~ userDetails:", userDetails)
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
   Fetch_User_Data: async (req: Request, res: Response) => {
     try {
       console.log("fetch user is working ");
@@ -256,8 +334,11 @@ const userController = {
         } else {
           const salt = await bcrypt.genSalt(10);
           const hassed = await bcrypt.hash(password, salt);
-          await Users.updateOne({email:email},{$set:{password:hassed}})
-          res.json({success:true})
+          await Users.updateOne(
+            { email: email },
+            { $set: { password: hassed } }
+          );
+          res.json({ success: true });
         }
       }
     } catch (err) {

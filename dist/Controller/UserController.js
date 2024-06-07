@@ -13,12 +13,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const userModel_1 = __importDefault(require("../Model/userModel"));
+const google_auth_library_1 = require("google-auth-library");
+const RandomGenerate_1 = require("../utils/RandomGenerate");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 require("dotenv/config");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const PUBLIC_DIR = path_1.default.join(__dirname, "public");
+const client = new google_auth_library_1.OAuth2Client(process.env.CLIENT_ID);
 const userController = {
     postSignUp: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
@@ -54,6 +57,68 @@ const userController = {
         catch (err) {
             console.error("Error showing in sing-up", err);
             return res.status(500).json({ error: "Internal server" });
+        }
+    }),
+    GoogleChecking: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            console.log(req.body, "this googel ath");
+            const { token } = req.body;
+            const ticket = (yield client.verifyIdToken({
+                idToken: token,
+                audience: process.env.CLIENT_ID,
+            }));
+            // console.log(
+            //   "🚀 ~ file: UserController.ts:75 ~ GoogleChecking: ~ ticket:",
+            //   ticket
+            // );
+            let userDetails;
+            const Payload = ticket.getPayload();
+            if (Payload) {
+                userDetails = {
+                    email: Payload === null || Payload === void 0 ? void 0 : Payload.email,
+                    name: Payload === null || Payload === void 0 ? void 0 : Payload.name,
+                    password: (0, RandomGenerate_1.makePassword)()
+                };
+            }
+            const userIn = yield userModel_1.default.findOne({ email: userDetails === null || userDetails === void 0 ? void 0 : userDetails.email });
+            // console.log("🚀 ~ file: UserController.ts:89 ~ GoogleChecking: ~ userIn:", userIn)
+            if (!userIn) {
+                const saveUser = new userModel_1.default({
+                    name: userDetails === null || userDetails === void 0 ? void 0 : userDetails.name,
+                    email: userDetails === null || userDetails === void 0 ? void 0 : userDetails.email,
+                    password: userDetails === null || userDetails === void 0 ? void 0 : userDetails.password,
+                    role: 'User'
+                });
+                const user = yield saveUser.save();
+                const token = jsonwebtoken_1.default.sign({ user: user.id }, process.env.ACCESS_TOKEN_SECRET);
+                res
+                    .cookie("token", token, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "strict",
+                    maxAge: 100 * 60 * 60 * 24,
+                })
+                    .json({ success: true });
+            }
+            else {
+                if (userIn.status == 'Block') {
+                    return res.json({ statusBlock: true });
+                }
+                else {
+                    const token = jsonwebtoken_1.default.sign({ user: userIn.id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "30d" });
+                    // console.log("🚀 ~ file: UserController.ts:130 ~ PostLogin: ~ token:", token)
+                    res
+                        .cookie("token", token, {
+                        httpOnly: true,
+                        maxAge: 100 * 60 * 60 * 24,
+                    })
+                        .json({ success: true });
+                }
+            }
+            console.log("🚀 ~ file: UserController.ts:92 ~ GoogleChecking: ~ userDetails:", userDetails);
+        }
+        catch (err) {
+            console.log(err);
         }
     }),
     Fetch_User_Data: (req, res) => __awaiter(void 0, void 0, void 0, function* () {

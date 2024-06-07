@@ -2,6 +2,7 @@ import express from "express";
 const router = express.Router();
 import userController from '../Controller/UserController'
 import upload from "../multer/multerconfig";
+// import { googleAuthController } from "../Controller/GoogleAuth";
 
 
 
@@ -11,6 +12,9 @@ router.post("/login", userController.PostLogin);
 
 //*Handiling Profile Router
 router.post("/edit-profile-form", userController.PostEditProfile)
+
+//* google authentication 
+router.post("/google-auth",userController.GoogleChecking);
 
 
 //*change prolie

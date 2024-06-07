@@ -1,8 +1,10 @@
 import express, { Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
+// import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import cros from "cors";
 import path from "path";
+// import passport from "passport";
 import { connectDb } from "./config/config";
 import UserRouter from "./Routers/UserRouter";
 import AdminRouter from "./Routers/AdminRouter";
@@ -20,7 +22,16 @@ const PORT = process.env.PORT || 4000;
 // const PUBLIC_DIR = path.join(__dirname, "public");
 
 // app.use(express.static(PUBLIC_DIR));
+// app.use(
+//   cookieSession({
+//     name: "session",
+//     keys: ["cyberwolve"],
+//     maxAge: 24 * 60 * 60 * 100,
+//   })
+// );
 
+// app.use(passport.initialize());
+// app.use(passport.session());
 app.use(express.json());
 app.use(cookieParser());
 

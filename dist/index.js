@@ -5,8 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+// import cookieSession from "cookie-session";
 const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
+// import passport from "passport";
 const config_1 = require("./config/config");
 const UserRouter_1 = __importDefault(require("./Routers/UserRouter"));
 const AdminRouter_1 = __importDefault(require("./Routers/AdminRouter"));
@@ -20,6 +22,15 @@ const PORT = process.env.PORT || 4000;
 // app.use(express.static(path.join(__dirname, "dist")));
 // const PUBLIC_DIR = path.join(__dirname, "public");
 // app.use(express.static(PUBLIC_DIR));
+// app.use(
+//   cookieSession({
+//     name: "session",
+//     keys: ["cyberwolve"],
+//     maxAge: 24 * 60 * 60 * 100,
+//   })
+// );
+// app.use(passport.initialize());
+// app.use(passport.session());
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use((0, cors_1.default)({
